@@ -1,36 +1,137 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <title>Farm App - Lịch Tưới Cây</title>
+    <style>
+      .progress-bar-orange {
+        background-color: orange;
+      }
+      .progress-bar-blue {
+        background-color: blue;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container d-flex justify-content-center align-items-center vh-100">
+      <div class="card p-4" style="width: 30rem;">
+        <h5 class="card-title text-center mb-4">Nhập Thông Tin Lịch Tưới Cây</h5>
+        <form id="scheduleForm" action="/scheduler" method="POST">
+          <div class="mb-3">
+            <label for="scheduleName" class="form-label">Tên lịch tưới</label>
+            <input type="text" class="form-control" id="scheduleName" name="scheduleName" required>
+          </div>
+          <div class="mb-3">
+            <label for="cycle" class="form-label">Cycle</label>
+            <select class="form-select" id="cycle" name="cycle" required>
+              <option value="" disabled selected>Chọn giá trị</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="5">5</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="flow1" class="form-label">flow 1</label>
+            <select class="form-select" id="flow1" name="flow1" required>
+              <option value="" disabled selected>Chọn giá trị</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="flow2" class="form-label">flow 2</label>
+            <select class="form-select" id="flow2" name="flow2" required>
+              <option value="" disabled selected>Chọn giá trị</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="flow3" class="form-label">flow 3</label>
+            <select class="form-select" id="flow3" name="flow3" required>
+              <option value="" disabled selected>Chọn giá trị</option>
+              <option value="10">10</option>
+              <option value="20">20</option>
+              <option value="30">30</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="wateringArea" class="form-label">Khu vực tưới</label>
+            <select class="form-select" id="wateringArea" name="wateringArea" required>
+              <option value="" disabled selected>Chọn khu vực</option>
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label for="startTime" class="form-label">Thời gian bắt đầu</label>
+            <input type="time" class="form-control" id="startTime" name="startTime" required>
+          </div>
+          <button type="submit" class="btn btn-primary w-100">Lưu lịch tưới</button>
+        </form>
+      </div>
 
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ChatShare</title>
-    <link rel="icon" href="/static/images/logo.ico" type="image/x-icon">
-    <link rel="stylesheet" href="/static/css/styles.css">
-    <link href="https://fonts.googleapis.com/css?family=Exo:400,700" rel="stylesheet">
-</head>
+      <div class="card p-4" style="width: 50rem;">
+        <h5 class="card-title text-center mb-4">Danh Sách Lịch Tưới</h5>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">#</th>
+              <th scope="col">Tên lịch tưới</th>
+              <th scope="col">Flow 1</th>
+              <th scope="col">Flow 2</th>
+              <th scope="col">Flow 3</th>
+              <th scope="col">Cycle</th>
+              <th scope="col">Khu vực tưới</th>
+              <th scope="col">Thời gian bắt đầu</th>
+            </tr>
+          </thead>
+          <tbody>
+            {%for item in schedule%}
+            <tr>
+              <th scope="row">{{item[0]}}</th>
+              <td>{{item[1]}}</td>
+              <td>{{item[2]}}</td>
+              <td>{{item[3]}}</td>
+              <td>{{item[4]}}</td>
+              <td>{{item[5]}}</td>
+              <td>{{item[6]}}</td>
+              <td>{{item[7]}}</td>
+              <td><button class="btn btn-danger btn-sm">Xóa</button></td>
+            </tr>
+            {%endfor%}
+            <!-- Các dòng khác sẽ được thêm vào đây -->
+          </tbody>
+        </table>
 
-<body>
-    <div class="area">
-        <div class="circles">
-            <ul>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-                <li></li>
-            </ul>
+        <!-- Dashboard for Temperature and Humidity -->
+        <div class="card p-4 mt-4">
+          <h5 class="card-title text-center mb-4">Nhiệt Độ và Độ Ẩm</h5>
+          <div class="mb-3">
+            <h6>Nhiệt Độ</h6>
+            <div class="progress">
+              <div id="temperature-bar" class="progress-bar progress-bar-orange" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <p class="text-center" id="temperature-value">{{temp}}</p>
+          </div>
+          <div class="mb-3">
+            <h6>Độ Ẩm</h6>
+            <div class="progress">
+              <div id="humidity-bar" class="progress-bar progress-bar-blue" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>
+            <p class="text-center" id="humidity-value">{{humi*100}}%</p>
+          </div>
         </div>
+      </div>
     </div>
-    <div class="context">
-        <h1>{{title}}</h1>
-        <h3>Taking Your Flask Project Beyond Localhost!</h3>
-    </div>
-</body>
 
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+  </body>
 </html>
