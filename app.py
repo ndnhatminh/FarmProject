@@ -1,8 +1,5 @@
 from flask import Flask, render_template, jsonify, request, redirect, url_for
 import os
-import subprocess
-import requests
-import sys
 import json
 import time
 from dotenv import dotenv_values
@@ -97,4 +94,4 @@ def scheduler():
     
     return redirect(url_for('index'))
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
