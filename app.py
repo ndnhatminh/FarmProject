@@ -1,11 +1,24 @@
 from flask import Flask, render_template, jsonify, request, redirect, url_for
 import os
-import json
+import numpy as np
 import time
 from dotenv import dotenv_values
 from adafruit_mqtt import Adafruit_MQTT
-
 import json
+
+def rain_prediction(temp, humidi):
+    theta = np.load('model_params.npy')
+
+    new_data = np.array([[temp, humidi, 1]])
+
+    # Dự đoán lượng mưa cho dữ liệu mới
+    prediction = new_data.dot(theta)
+
+    pre = prediction[0][0]
+    return 0 if pre < 0 else pre
+
+print("rain prediction", rain_prediction(25,0.7))
+
 
 def read_data_from_json(file_path):
     with open(file_path, 'r') as file:
@@ -15,6 +28,29 @@ def read_data_from_json(file_path):
 def write_data_to_json(data, file_path):
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=4)
+
+def delete_data_to_json(file_path, id):
+    print("id:", id)
+    data = read_data_from_json(file_path)
+    print("data:", type(data['schedule']))
+    for item in data['schedule']:
+        if item[0] == int(id):
+            schedule = {
+                "code": "delete",
+                "id": int(id),
+                "mixer1": item[2],
+                "mixer2": item[3],
+                "mixer3": item[4],
+                "cycle": item[5],
+                "area": item[6],
+                "start time": item[7]
+            }
+            response_data_string = json.dumps(schedule)
+
+            client.publish('schedule', response_data_string)
+            data['schedule'].remove(item)
+    print('deleted', data['schedule'])
+    write_data_to_json(data, file_path)
 
 env_config = dotenv_values('.env')
 
@@ -36,8 +72,8 @@ def callBackFunc_Message(feed_id, payload):
         data['humi'] = float(payload)
         write_data_to_json(data, 'data.json')
 
-# MAIN PROGRAM
-# Create an instance of Adafruit_MQTT class
+# # MAIN PROGRAM
+# # Create an instance of Adafruit_MQTT class
 client = Adafruit_MQTT(AIO_USERNAME, AIO_KEY, AIO_FEED_IDs, callBackFunc_Message)
 client.setup()
 client.connect_and_loop()
@@ -58,7 +94,18 @@ def index():
 
     data = read_data_from_json('data.json')
     schedule = data['schedule']
-    return render_template('index.html', temp=temp, humi=humi, schedule=schedule)
+
+    rain = rain_prediction(temp, humi)
+    return render_template('index.html', temp=temp, humi=humi, schedule=schedule, rain=rain)
+
+@app.route('/delete', methods=['POST'])
+def delete_schedule():
+    data = request.json
+    schedule_id = data.get('id')
+    delete_data_to_json('data.json', schedule_id)
+    print(schedule_id)
+    # return jsonify({'message': 'Schedule deleted successfully'})
+    return redirect(url_for('index'))
 
 @app.route('/scheduler', methods=['POST'])
 def scheduler():
@@ -93,5 +140,7 @@ def scheduler():
     write_data_to_json(data, 'data.json')
     
     return redirect(url_for('index'))
-if __name__ == "__main__":
-    app.run()
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
